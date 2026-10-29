@@ -1,0 +1,363 @@
+<title>MAX Multi-Account Mod</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* layout: single centered column, research-dossier feel; dark-first with one amber accent */
+  :root{
+    --bg:#0c0f13; --surface:#13171d; --surface-2:#1a2027; --line:#262f3a;
+    --fg:#e9ecef; --muted:#9aa5b1; --faint:#69747f;
+    --accent:#e3a74e; --accent-2:#74b6cc; --on-accent:#140f05;
+    --maxw:1060px;
+    --mono:"IBM Plex Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --disp:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+    color-scheme:dark;
+  }
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme="dark"]){
+      --bg:#f5f4f1; --surface:#ffffff; --surface-2:#edece7; --line:#e0dcd3;
+      --fg:#191d23; --muted:#55606c; --faint:#8a939e;
+      --accent:#a2660f; --accent-2:#246d86; --on-accent:#ffffff;
+      color-scheme:light;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#edece7; --line:#e0dcd3;
+    --fg:#191d23; --muted:#55606c; --faint:#8a939e;
+    --accent:#a2660f; --accent-2:#246d86; --on-accent:#ffffff;
+    color-scheme:light;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+  .wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0;line-height:1.08;letter-spacing:-.015em}
+  p{margin:0}
+  .hl{color:var(--accent)}
+  .eye{font-family:var(--mono);font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:0 0 .85rem}
+  :focus-visible{outline:2px solid var(--accent-2);outline-offset:3px;border-radius:3px}
+
+  /* header */
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.7rem}
+  .brand{font-family:var(--mono);font-size:.82rem;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brand b{color:var(--fg);font-weight:600}
+  .controls{display:flex;align-items:center;gap:.5rem;flex:none}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .seg button{font-family:var(--mono);font-size:.76rem;font-weight:600;letter-spacing:.04em;padding:.34rem .6rem;background:transparent;color:var(--muted);border:0;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+  .iconbtn{display:inline-grid;place-items:center;width:33px;height:33px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);cursor:pointer;font-size:.95rem}
+  .iconbtn:hover{color:var(--fg);border-color:var(--faint)}
+
+  /* hero */
+  .hero{padding-block:clamp(2.6rem,6vw,4.6rem) clamp(2rem,4vw,3rem);position:relative}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 70% at 88% -5%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 62%);pointer-events:none}
+  .hero .wrap{position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(1.6rem,4vw,3rem);align-items:center}
+  h1{font-size:clamp(2.1rem,5.4vw,3.35rem);font-weight:800}
+  .lead{margin-top:1.15rem;font-size:clamp(1.02rem,1.4vw,1.17rem);color:var(--muted);max-width:40ch}
+  .cta-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.6rem}
+  .btn{font-family:var(--mono);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding:.68rem 1.05rem;border-radius:8px;border:1px solid var(--line);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem}
+  .btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.07);text-decoration:none}
+  .btn.ghost{background:transparent;color:var(--fg)}
+  .btn.ghost:hover{border-color:var(--faint);text-decoration:none}
+  .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.9rem}
+  .chip{font-family:var(--mono);font-size:.76rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.34rem .72rem;display:inline-flex;gap:.45rem;align-items:center}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+
+  /* readout window */
+  .readout{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 18px 44px -28px rgba(0,0,0,.6)}
+  .readout .ttl{display:flex;align-items:center;gap:.5rem;padding:.6rem .85rem;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.72rem;color:var(--faint);background:var(--surface-2)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+  .readout .body{padding:1rem 1.05rem;font-family:var(--mono);font-size:.82rem;line-height:1.75;display:grid;gap:.5rem}
+  .ro{display:grid;grid-template-columns:5.2rem 1fr;gap:.6rem}
+  .ro .k{color:var(--accent)}
+  .ro .v{color:var(--fg);min-width:0}
+
+  /* sections */
+  section{padding-block:clamp(2.4rem,5vw,3.6rem);border-top:1px solid var(--line)}
+  .s-head{max-width:62ch}
+  h2{font-size:clamp(1.5rem,3vw,2.05rem);font-weight:700}
+  .s-body{margin-top:1.15rem;display:grid;gap:1rem;max-width:68ch;color:var(--muted)}
+  .s-body strong,.s-body b{color:var(--fg);font-weight:600}
+
+  /* cards */
+  .cards{margin-top:1.7rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(256px,1fr));gap:1rem}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.15rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.55rem;transition:border-color .18s ease,transform .18s ease}
+  .card:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));transform:translateY(-2px)}
+  .card .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
+  .card h3{font-size:1.12rem;font-weight:700}
+  .card p{color:var(--muted);font-size:.95rem}
+
+  /* skills */
+  .groups{margin-top:1.7rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:1.1rem 1.6rem}
+  .group h3{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:.75rem}
+  .tags{display:flex;flex-wrap:wrap;gap:.4rem}
+  .t{font-size:.82rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.3rem .55rem}
+
+  /* method list */
+  .mlist{margin-top:1.5rem;display:grid;gap:.75rem;max-width:72ch}
+  .mlist li{list-style:none;display:grid;grid-template-columns:auto 1fr;gap:.75rem;color:var(--muted);padding:.2rem 0}
+  .mlist li::before{content:"›";color:var(--accent);font-family:var(--mono);font-weight:600}
+  .mlist b{color:var(--fg)}
+
+  /* notice blocks */
+  .notice{margin-top:1.3rem;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:1.1rem 1.2rem;color:var(--muted);max-width:74ch}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding-block:2rem 2.6rem}
+  .foot{display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;justify-content:space-between;align-items:center;color:var(--faint);font-family:var(--mono);font-size:.78rem}
+
+  @media (max-width:820px){
+    .hero-grid{grid-template-columns:1fr}
+    .lead{max-width:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand">0d1ns0n&thinsp;/&thinsp;<b>max-multiaccount-mod</b></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Language">
+        <button id="lang-ru" type="button" aria-pressed="true">RU</button>
+        <button id="lang-en" type="button" aria-pressed="false">EN</button>
+      </div>
+      <button id="theme" class="iconbtn" type="button" aria-label="Тема">◐</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-text">
+          <p class="eye" data-i18n="heroEye">Исследовательский проект · реверс-инжиниринг</p>
+          <h1 data-i18n="heroTitle">Несколько аккаунтов<br>в одном <span class="hl">закрытом клиенте</span></h1>
+          <p class="lead" data-i18n="heroSub">Независимое исследование десктопного мессенджера MAX на Windows. Реверс закрытого Qt6/x64-клиента и собственный слой изоляции: несколько своих аккаунтов работают одновременно, каждый — в своём окружении, а вход переживает перезагрузку. Без публикации кода.</p>
+          <div class="cta-row">
+            <a class="btn primary" href="#results" data-i18n="ctaPrimary">Что получилось →</a>
+            <a class="btn ghost" href="#ethics" data-i18n="ctaSecondary">Почему нет кода</a>
+          </div>
+          <div class="chips">
+            <span class="chip" data-i18n="chip1">несколько аккаунтов сразу</span>
+            <span class="chip" data-i18n="chip2">изоляция на профиль</span>
+            <span class="chip" data-i18n="chip3">вход переживает перезагрузку</span>
+            <span class="chip" data-i18n="chip4">проверено на живом процессе</span>
+          </div>
+        </div>
+        <div class="readout" aria-hidden="true">
+          <div class="ttl"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span data-i18n="roTitle">// readout</span></div>
+          <div class="body">
+            <div class="ro"><span class="k" data-i18n="roLT">объект</span><span class="v" data-i18n="roVT">MAX desktop · Qt6 · x64 · закрытый</span></div>
+            <div class="ro"><span class="k" data-i18n="roLG">цель</span><span class="v" data-i18n="roVG">много аккаунтов · одна машина · изолированно</span></div>
+            <div class="ro"><span class="k" data-i18n="roLS">статус</span><span class="v" data-i18n="roVS">параллельно + изолированно — подтверждено в рантайме</span></div>
+            <div class="ro"><span class="k" data-i18n="roLM">метод</span><span class="v" data-i18n="roVM">статика × живой процесс × сверка по бинарю</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="overview">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s1eye">// обзор</p>
+        <h2 data-i18n="s1h">Что это демонстрирует</h2>
+      </div>
+      <div class="s-body">
+        <p data-i18n="s1p1">Официальный клиент рассчитан на один аккаунт на машину, а штатный мультиаккаунт отключён. Задача звучит просто — «открыть второе окно», — но упирается в закрытый бинарник: единственность инстанса, привязку сессии к устройству и хранение секретов нужно понять и аккуратно обойти, ничего не ломая.</p>
+        <p data-i18n="s1p2">Результат — не «патч на удачу», а воспроизводимое понимание того, как устроен клиент, и минимальный слой поверх него, который делает ровно одно: честно разводит профили по своим границам.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s2eye">// результаты</p>
+        <h2 data-i18n="s2h">Ключевые результаты</h2>
+      </div>
+      <div class="cards">
+        <div class="card"><span class="tag">multi-instance</span><h3 data-i18n="c1t">Параллельные инстансы</h3><p data-i18n="c1d">Обойдена защита от второго запуска. Настоящий механизм блокировки оказался не там, где ждали: он найден инструментацией и аккуратно нейтрализован для каждого профиля.</p></div>
+        <div class="card"><span class="tag">isolation</span><h3 data-i18n="c2t">Изоляция аккаунтов</h3><p data-i18n="c2d">Каждое окно видит только свою сессию. Найден реальный путь, которым клиент хранит секреты — вопреки очевидной гипотезе, — и разведён по профилям на уровне ОС.</p></div>
+        <div class="card"><span class="tag">persistence</span><h3 data-i18n="c3t">Персистентные сессии</h3><p data-i18n="c3d">Вход переживает перезапуск и перезагрузку ПК (подтверждено для основного профиля; автологин по каждому профилю ещё проверяется). Перенос между машинами ограничен сознательно — свойство модели шифрования ОС, а не недоработка.</p></div>
+        <div class="card"><span class="tag">fingerprint</span><h3 data-i18n="c4t">Идентичность профиля</h3><p data-i18n="c4d">Каждый профиль детерминированно получает стабильный, отличный от других «отпечаток устройства», выведенный из его идентификатора.</p></div>
+        <div class="card"><span class="tag">native</span><h3 data-i18n="c5t">Компактная нативная доставка</h3><p data-i18n="c5d">Боевой компонент — небольшой нативный x64-модуль без стандартной библиотеки. Тупиковый архитектурный путь был вовремя распознан и отброшен, а не доведён впустую.</p></div>
+        <div class="card"><span class="tag">protocol</span><h3 data-i18n="c6t">Разбор протокола</h3><p data-i18n="c6d">Сетевой протокол клиента и его телеметрический канал разобраны по бинарю и задокументированы — как результат анализа, а не как инструмент.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s3eye">// стек</p>
+        <h2 data-i18n="s3h">Навыки и технологии</h2>
+      </div>
+      <div class="groups">
+        <div class="group">
+          <h3 data-i18n="g1">Windows-внутренности</h3>
+          <div class="tags"><span class="t">user-mode API interception</span><span class="t">DLL injection</span><span class="t">inter-process coordination</span><span class="t">credential store</span><span class="t">registry</span><span class="t">shell paths</span><span class="t">sandboxing</span></div>
+        </div>
+        <div class="group">
+          <h3 data-i18n="g2">Реверс-инжиниринг</h3>
+          <div class="tags"><span class="t">PE / binary analysis</span><span class="t">import-table analysis</span><span class="t">protocol RE</span><span class="t">decompilation workflow</span></div>
+        </div>
+        <div class="group">
+          <h3 data-i18n="g3">Низкоуровневое / нативное</h3>
+          <div class="tags"><span class="t">C / C++ (CRT-free)</span><span class="t">x86 / x64</span><span class="t">inline patching</span></div>
+        </div>
+        <div class="group">
+          <h3 data-i18n="g4">Инструменты и автоматизация</h3>
+          <div class="tags"><span class="t">Node.js build pipeline</span><span class="t">PowerShell</span><span class="t">WinForms launcher</span></div>
+        </div>
+        <div class="group">
+          <h3 data-i18n="g5">Инженерная практика</h3>
+          <div class="tags"><span class="t">hypothesis-driven debugging</span><span class="t">static + dynamic analysis</span><span class="t">documented knowledge base</span><span class="t">secrets hygiene</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s4eye">// метод</p>
+        <h2 data-i18n="s4h">Методология</h2>
+      </div>
+      <div class="s-body"><p data-i18n="s4intro">Ничего на удачу. Каждый вывод — результат нескольких независимых, перекрёстно проверяемых проходов:</p></div>
+      <ul class="mlist">
+        <li data-i18n="m1"><span><b>Статика.</b> Декомпилят, разобранный несколькими независимыми проходами со сведением и критиком.</span></li>
+        <li data-i18n="m2"><span><b>Динамика.</b> Живой слепок запущенного процесса — гипотезы проверялись на реальном поведении.</span></li>
+        <li data-i18n="m3"><span><b>Сверка по бинарю.</b> Таблицы импортов и разрядность как арбитр спорных предположений.</span></li>
+        <li data-i18n="m4"><span><b>Честный статус.</b> База знаний, где у каждого факта помечено: подтверждено, под вопросом или не сделано.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="ethics">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s5eye">// этика</p>
+        <h2 data-i18n="s5h">Почему здесь нет кода</h2>
+      </div>
+      <div class="notice"><p data-i18n="s5p">Это витрина инженерной работы, а не инструкция. Исходный код, собранные бинарники, реальные данные сессий и конкретные механизмы сознательно не выкладываются. Причины простые: интеллектуальная собственность автора; ответственное раскрытие — детали реверса закрытого клиента не место в открытом доступе; и то, что ценность здесь в решённых задачах и подходе, а не в копипасте. Показаны классы проблем и навыки — не рецепт воспроизведения.</p></div>
+    </div>
+  </section>
+
+  <section id="disclaimer">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s6eye">// важно</p>
+        <h2 data-i18n="s6h">Дисклеймер</h2>
+      </div>
+      <div class="notice"><p data-i18n="s6p">Независимый, неофициальный исследовательский проект. Не аффилирован с разработчиками мессенджера MAX, не одобрен и не спонсирован ими. Все названия, продукты и товарные знаки принадлежат их владельцам и упоминаются только для идентификации. Проект создавался для личного использования, исследования и обучения. В репозитории нет учётных данных, токенов и собранных бинарников.</p></div>
+    </div>
+  </section>
+
+  <section id="license">
+    <div class="wrap">
+      <div class="s-head">
+        <p class="eye" data-i18n="s7eye">// права</p>
+        <h2 data-i18n="s7h">Лицензия</h2>
+      </div>
+      <div class="s-body"><p data-i18n="s7p">Все права защищены. Материалы этой витрины можно просматривать для ознакомления. Любое копирование, изменение, распространение или использование — только с письменного разрешения автора. Полный текст — в файле <a href="https://github.com/0d1ns0n/max-multiaccount-mod-public/blob/main/LICENSE">LICENSE</a>.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span data-i18n="footMain">Независимый исследовательский проект · только в образовательных целях</span>
+    <span data-i18n="footCopy">© 2026 0d1ns0n · Все права защищены</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var EN={
+    heroEye:"Research project · reverse engineering",
+    heroTitle:"Several accounts<br>in one <span class=\"hl\">closed-source client</span>",
+    heroSub:"An independent study of the MAX desktop messenger on Windows. Reverse engineering of a closed-source Qt6/x64 client, plus a custom isolation layer: several of your own accounts run at the same time, each in its own environment, and the login survives a reboot. No code published.",
+    ctaPrimary:"See the results →",
+    ctaSecondary:"Why no code",
+    chip1:"several accounts at once",
+    chip2:"per-profile isolation",
+    chip3:"login survives reboot",
+    chip4:"verified on a live process",
+    roTitle:"// readout",
+    roLT:"target", roVT:"MAX desktop · Qt6 · x64 · closed-source",
+    roLG:"goal", roVG:"many accounts · one machine · isolated",
+    roLS:"status", roVS:"concurrent + isolated — confirmed at runtime",
+    roLM:"method", roVM:"static × live process × binary verification",
+    s1eye:"// overview", s1h:"What this demonstrates",
+    s1p1:"The official client is built for one account per machine, and its built-in multi-account mode is switched off. “Just open a second window” sounds trivial, but it runs into a closed binary: instance uniqueness, device-bound sessions and secret storage all have to be understood and carefully worked around without breaking anything.",
+    s1p2:"The result isn’t a patch-and-pray hack but a reproducible understanding of how the client works, and a minimal layer on top of it that does exactly one thing: cleanly keeps each profile within its own boundaries.",
+    s2eye:"// results", s2h:"Key results",
+    c1t:"Concurrent instances", c1d:"Got past the client’s single-instance guard. The real lock wasn’t where it was expected; it was found through instrumentation and neutralized per profile.",
+    c2t:"Account isolation", c2d:"Each window sees only its own session. The real path the client uses to store secrets — contrary to the obvious guess — was found and scoped per profile at the OS level.",
+    c3t:"Persistent sessions", c3d:"The login persists across restarts and reboots (verified for the primary profile; per-profile auto-login still being confirmed). Limited cross-machine portability is intentional — a property of the OS encryption model, not a shortcoming.",
+    c4t:"Per-profile identity", c4d:"Each profile deterministically gets a stable, distinct “device fingerprint”, derived from its identifier.",
+    c5t:"Lean native delivery", c5d:"The working component is a small, CRT-free native x64 module. A dead-end architectural path was recognized early and dropped rather than pursued in vain.",
+    c6t:"Protocol analysis", c6d:"The client’s network protocol and its telemetry channel were mapped from the binary and documented — as an analysis result, not a tool.",
+    s3eye:"// stack", s3h:"Skills & technologies",
+    g1:"Windows internals", g2:"Reverse engineering", g3:"Low-level / native", g4:"Tooling & automation", g5:"Engineering practice",
+    s4eye:"// method", s4h:"Methodology",
+    s4intro:"Nothing left to luck. Every conclusion came from several independent, cross-checked passes:",
+    m1:"<span><b>Static.</b> The decompilation, read in several independent passes, then synthesized and challenged by a critic.</span>",
+    m2:"<span><b>Dynamic.</b> Live snapshots of the running process — hypotheses tested against real behavior.</span>",
+    m3:"<span><b>Binary verification.</b> Import tables and architecture as the arbiter of contested assumptions.</span>",
+    m4:"<span><b>Honest status.</b> A knowledge base where every fact is marked: verified, uncertain, or not done.</span>",
+    s5eye:"// ethics", s5h:"Why there’s no code here",
+    s5p:"This is a showcase of engineering work, not a how-to. Source code, compiled binaries, real session data and the specific mechanisms are deliberately withheld. The reasons are simple: the author’s intellectual property; responsible disclosure — reverse-engineering details of a closed client don’t belong in the open; and the fact that the value here is in the problems solved and the approach, not in copy-paste. What’s shown is the class of problems and the skills — not a recipe to reproduce.",
+    s6eye:"// notice", s6h:"Disclaimer",
+    s6p:"An independent, unofficial research project. Not affiliated with, endorsed by or sponsored by the developers of the MAX messenger. All names, products and trademarks belong to their respective owners and are referenced for identification only. The project was built for personal use, research and learning. The repository contains no credentials, tokens or compiled binaries.",
+    s7eye:"// rights", s7h:"License",
+    s7p:"All rights reserved. The materials in this showcase may be viewed for reference. Any copying, modification, distribution or use requires the author’s prior written permission. Full text in the <a href=\"https://github.com/0d1ns0n/max-multiaccount-mod-public/blob/main/LICENSE\">LICENSE</a> file.",
+    footMain:"Independent research project · for educational purposes only",
+    footCopy:"© 2026 0d1ns0n · All rights reserved"
+  };
+
+  var nodes=[].slice.call(document.querySelectorAll('[data-i18n]'));
+  var RU={};
+  nodes.forEach(function(n){RU[n.getAttribute('data-i18n')]=n.innerHTML;});
+  var btnRu=document.getElementById('lang-ru'), btnEn=document.getElementById('lang-en');
+
+  function setLang(l){
+    nodes.forEach(function(n){
+      var k=n.getAttribute('data-i18n');
+      var v=(l==='en'?(EN[k]!=null?EN[k]:RU[k]):RU[k]);
+      if(v!=null) n.innerHTML=v;
+    });
+    document.documentElement.setAttribute('lang',l);
+    btnRu.setAttribute('aria-pressed', String(l==='ru'));
+    btnEn.setAttribute('aria-pressed', String(l==='en'));
+    try{localStorage.setItem('mamm-lang',l);}catch(e){}
+  }
+  btnRu.addEventListener('click',function(){setLang('ru');});
+  btnEn.addEventListener('click',function(){setLang('en');});
+
+  var themeBtn=document.getElementById('theme');
+  function sysDark(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;}
+  function curTheme(){var e=document.documentElement.getAttribute('data-theme');return e?e:(sysDark()?'dark':'light');}
+  themeBtn.addEventListener('click',function(){
+    var next=curTheme()==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    try{localStorage.setItem('mamm-theme',next);}catch(e){}
+  });
+
+  try{
+    var sl=localStorage.getItem('mamm-lang'); if(sl==='en') setLang('en');
+    var st=localStorage.getItem('mamm-theme'); if(st==='dark'||st==='light') document.documentElement.setAttribute('data-theme',st);
+  }catch(e){}
+})();
+</script>
